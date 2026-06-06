@@ -73,7 +73,7 @@
 
 ```
 monitoring-agent/
-  pyproject.toml / requirements.txt
+  pyproject.toml
   docker-compose.yml          # agent + embedding-service (+ опц. mailhog для real-SMTP демо)
   .env.example                # GIGACHAT creds, scope, источники, режим адаптеров
   README.md                   # как запустить демо за 1 команду
@@ -95,7 +95,7 @@ monitoring-agent/
         persist_audit.py
 
     llm/
-      gigachat_client.py      # ПЕРЕИСПОЛЬЗОВАТЬ паттерн: GigaChat + кэш токена (буфер −60с, lock)
+      gigachat_client.py      # тонкая фабрика над langchain_gigachat.GigaChat(credentials, scope); встроенный refresh
       prompts.py              # system prompts: TRIAGE_PROMPT, PLAN_PROMPT + few-shot
       schemas.py              # Pydantic-схемы structured output (GigaChat-совместимые)
 
@@ -142,7 +142,7 @@ monitoring-agent/
 
 | Новый модуль | Источник-паттерн | Что берём |
 |---|---|---|
-| `llm/gigachat_client.py` | `ai-factory/core/routes/agent/entrypoint.py` (init token, refresh) | `langchain_gigachat.GigaChat`, кэш токена с буфером −60с под `Lock`, refresh перед запросом |
+| `llm/gigachat_client.py` | `ai-factory/core/routes/agent/entrypoint.py` (init pattern) | Паттерн инициализации `langchain_gigachat.GigaChat(credentials, scope, verify_ssl_certs=False)`. Refresh токена — **на библиотеке**, без ручного Lock-кэша (Karpathy «Simplicity first»). |
 | `rag/embeddings.py` | `backend/ai_factory/modules/knowledge_base/embeddings.py` | `E5RemoteEmbeddings` (copy as-is, сменить endpoint) |
 | `rag/vectorize.py` | `backend/.../knowledge_base/vectorization.py` | loader (PDF/DOCX/TXT, encoding-fallback), `RecursiveCharacterTextSplitter(512, overlap=50)`, префикс `passage:`, `FAISS.from_documents` |
 | `rag/retriever.py` | `ai-factory/core/routes/knowledge_base/entrypoint.py` `/search/` | `similarity_search_with_score(k, threshold)`, режимы NECC/STRONG/WEAK, `form_prompt_for_mode` |
@@ -187,7 +187,7 @@ monitoring-agent/
 
 > Полный список инвариантов и анти-паттернов — `CLAUDE.md` (§ Invariants, § Anti-patterns).
 
-- **GigaChat token** живёт ~30 мин → кэш с буфером −60с под `Lock`, refresh перед запросом.
+- **GigaChat token** живёт ~30 мин → `langchain_gigachat.GigaChat` рефрешит токен внутри. Ручной `Lock`-кэш добавляем ТОЛЬКО если обнаружим race condition / отказ при concurrent запросах (см. CLAUDE.md § Invariants #10).
 - **GigaChat schema**: нет `anyOf`, нет `type:object` без `properties`, нет `type:array` без `items` → схемы плоские, всегда `items`/`properties`.
 - **E5 префиксы**: документы `passage:`, запросы `query:` (зафиксировать единообразно).
 - **FAISS**: `allow_dangerous_deserialization=True` при загрузке; `chunk_size` — символы, не токены (~3-4 символа/токен для кириллицы).

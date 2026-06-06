@@ -21,7 +21,7 @@ Standalone AI-агент мониторинга IT-инцидентов. RSS-ф�
 app/
   api/        — FastAPI: POST /trigger, GET /health, /audit
   graph/      — LangGraph: ingest → triage → enrich_rag → resolve_owner → plan_action → act_ticket → act_notify → persist_audit
-  llm/        — GigaChat client (token cache) + structured-output schemas
+  llm/        — GigaChat client (встроенный refresh) + structured-output schemas
   rag/        — E5 embeddings, vectorize (chunk 512/overlap 50), FAISS retriever
   ingest/     — RSS poller (daemon thread) + FakeSource из fake_feed.json
   adapters/   — TicketAdapter / NotifyAdapter (Protocol + mock + factory)
@@ -43,7 +43,7 @@ evals/        — agent_eval (core), ragas_eval (bonus за флагом)
 7. **FAISS deserialization:** `allow_dangerous_deserialization=True` только для **нашего** артефакта `vectorize.py`. Не загружаем чужие индексы.
 8. **Loguru:** `{}` и `<...>` в message → экранировать `{{ }}` и `\<` `\>`. Использовать обёртку `_safe()`.
 9. **E5 префиксы:** документы — `passage:`, запросы — `query:`. Единообразно во всём RAG.
-10. **GigaChat token:** кэш под `Lock`, буфер ≥ 60s, refresh ПЕРЕД запросом (не после 401).
+10. **GigaChat token:** передаём `credentials` + `scope` в `langchain_gigachat.GigaChat`, библиотека сама получает и рефрешит токен. Ручной `Lock`-кэш НЕ городить (Karpathy «Simplicity first»). Если обнаружим race condition при concurrent-нагрузке — добавляем с явным обоснованием в `decisions`.
 
 ## Rules (правила работы над проектом)
 
@@ -104,7 +104,7 @@ python evals/ragas_eval.py
 | `app/api/server.py` | FastAPI entrypoint, `/trigger`, `/health`, `/audit` |
 | `app/graph/build.py` | `StateGraph`, conditional edges, recursion limit |
 | `app/state.py` | `MonitorState`, `EventRecord`, enums (`Severity`, `Status`) |
-| `app/llm/gigachat_client.py` | GigaChat-клиент + token-кэш под Lock |
+| `app/llm/gigachat_client.py` | Тонкая фабрика над `langchain_gigachat.GigaChat` (встроенный refresh) |
 | `app/llm/prompts.py` | `TRIAGE_PROMPT`, `PLAN_PROMPT` (+ few-shot) |
 | `app/llm/schemas.py` | Pydantic-схемы structured-output (плоские, GigaChat-совместимые) |
 | `app/rag/retriever.py` | FAISS similarity_search + STRONG/WEAK режимы |

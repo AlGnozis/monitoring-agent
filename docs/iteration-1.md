@@ -29,7 +29,7 @@
 |---|---|
 | `app/config.py` | pydantic-settings: токены GigaChat, scope, ADAPTERS, SOURCE, FEED_URL |
 | `app/state.py` | `MonitorState`, `EventRecord`, enums `Severity`, `Status` |
-| `app/llm/` | `gigachat_client.py` (token cache), `prompts.py` (TRIAGE + PLAN), `schemas.py` (плоские структуры) |
+| `app/llm/` | `gigachat_client.py` (тонкая фабрика, встроенный refresh), `prompts.py` (TRIAGE + PLAN), `schemas.py` (плоские структуры) |
 | `app/rag/` | `embeddings.py`, `vectorize.py`, `retriever.py`, `build_kb.py` (CLI) |
 | `app/ingest/` | `sources.py` (`FakeSource`), `rss_poller.py` (daemon) |
 | `app/adapters/` | `Protocol` + `MockTicketAdapter` + `MockNotifyAdapter` + `factory.py` |

@@ -236,7 +236,7 @@ $ pytest --collect-only
 | Task 1 | Скелет + pyproject + .env.example | `chore: project skeleton` |
 | Task 2 | `app/state.py` — MonitorState, EventRecord, enums | `feat(state): MonitorState + EventRecord + enums` |
 | Task 3 | `app/config.py` — pydantic-settings | `feat(config): pydantic-settings` |
-| Task 4 | `app/llm/gigachat_client.py` — клиент + token cache | `feat(llm): GigaChat client with token cache` |
+| Task 4 | `app/llm/gigachat_client.py` — тонкая фабрика над `langchain_gigachat` (встроенный refresh, без ручного Lock) | `feat(llm): GigaChat client (langchain refresh)` |
 | Task 5 | `app/llm/schemas.py` + `app/llm/prompts.py` | `feat(llm): structured output schemas + prompts` |
 | Task 6 | `app/rag/embeddings.py` + `app/rag/vectorize.py` | `feat(rag): E5 embeddings + vectorize` |
 | ... | продолжение по `docs/iteration-1.md` § Scope | ... |
