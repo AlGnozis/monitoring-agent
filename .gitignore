@@ -44,9 +44,14 @@ coverage.xml
 !.env.example
 
 # Runtime artifacts (генерируются при работе агента)
-data/kb/                    # FAISS-индексы и кэши embeddings
-outbox/                     # рендеренные .eml письма от MockNotifyAdapter
-*.db                        # SQLite: audit.db, tickets.db
+# (.gitignore не поддерживает inline-комментарии — паттерн и описание на разных строках)
+# FAISS-индексы и кэши embeddings
+data/kb/
+# рендеренные .eml письма от MockNotifyAdapter (но сам каталог трекаем через .gitkeep)
+outbox/*
+!outbox/.gitkeep
+# SQLite: audit.db, tickets.db
+*.db
 *.db-journal
 *.db-shm
 *.db-wal
