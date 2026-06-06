@@ -17,7 +17,7 @@
 > ```
 > приводит к:
 > 1. **1 строка** в `audit.db` (`EventRecord.status = DONE`),
-> 2. **1 ticket** `DEMO-XXX` в `tickets.db` (mock-Jira),
+> 2. **1 ticket** `DEMO-001` в `tickets.db` (mock-Jira; схема `DEMO-{seq:03d}`, первый = `DEMO-001`),
 > 3. **1 файл** `outbox/demo-001.eml` с письмом владельцу из `owners.yaml`,
 > 4. Повторный тот же `POST` возвращает 200 с тем же `event_hash` и **не создаёт** новых ticket/eml.
 >
@@ -27,7 +27,7 @@
 
 | Модуль | Что реализуется |
 |---|---|
-| `app/config.py` | pydantic-settings: токены GigaChat, scope, MODE, SOURCE, FEED_URL |
+| `app/config.py` | pydantic-settings: токены GigaChat, scope, ADAPTERS, SOURCE, FEED_URL |
 | `app/state.py` | `MonitorState`, `EventRecord`, enums `Severity`, `Status` |
 | `app/llm/` | `gigachat_client.py` (token cache), `prompts.py` (TRIAGE + PLAN), `schemas.py` (плоские структуры) |
 | `app/rag/` | `embeddings.py`, `vectorize.py`, `retriever.py`, `build_kb.py` (CLI) |
@@ -145,7 +145,7 @@
 - [ ] **Размер KB:** 4–6 markdown — достаточно? Если ревьюер захочет «понажимать» — может оказаться мало. Решим перед demo-видео.
 - [ ] **Mailhog в demo:** включать в `docker-compose.yml` по умолчанию или оставить закомментированным как «bonus профиль»? Влияет на сложность запуска на чистой машине.
 - [ ] **Поллер в MVP:** запускать в daemon-треде сразу или только активировать через переменную окружения? (Безопаснее: только через env, чтобы `docker-compose up` не «жил» в фоне фейковыми тиками.)
-- [ ] **CI на push vs на PR:** для одиночного контрибутора удобнее на push в `main`. Для команды — на PR. Сейчас закладываем на push (одиночная разработка), потом легко поменять.
+- [ ] **CI на push vs на PR:** `ci.yml` сейчас триггерится на `push` **и** `pull_request` в `main` (удобно и для одиночной разработки, и для PR). Менять при необходимости.
 - [ ] **README структура:** «быстрый старт» в начале (1 команда) или развёрнутый «как это работает» сразу? Решим, когда увидим работающий MVP.
 
 ---

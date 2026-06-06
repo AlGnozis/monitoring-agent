@@ -16,7 +16,7 @@
 
 - **Масштаб:** запускаемое демо «под жюри» — один standalone-сервис, запуск одной командой, продакшен-уровень архитектуры без полного Django+Kafka.
 - **Домен:** синтетическая лента IT-инцидентов «Сбер-like» (внутренние микросервисы: платёжный шлюз, КБ, АБС, KYC...) на русском — детерминированно, идеально под GigaChat, осмысленный owner-маппинг. **Фид:** основной режим — `fake_feed.json` (воспроизводимо, для демо + e2e); адаптер источника позволяет переключиться на **живой RSS (feedparser) как bonus**.
-- **Интеграции:** **mock-only** (реальных Jira/SMTP нет). Интерфейс `Protocol` сохраняем (production-ready): `MockTicketAdapter` → SQLite + синтетический ключ `DEMO-123`; `MockNotifyAdapter` → рендер письма в `outbox/*.eml` + лог. Опц. **Mailhog** как локальный визуальный SMTP-сток (без внешней инфры).
+- **Интеграции:** **mock-only** (реальных Jira/SMTP нет). Интерфейс `Protocol` сохраняем (production-ready): `MockTicketAdapter` → SQLite + синтетический ключ `DEMO-{seq:03d}` (первый = `DEMO-001`); `MockNotifyAdapter` → рендер письма в `outbox/*.eml` + лог. Опц. **Mailhog** как локальный визуальный SMTP-сток (без внешней инфры).
 - **Оркестрация:** явный **LangGraph** state-machine с именованными узлами и условными рёбрами.
 - **Данные:** лёгкий стек без Django ORM — `MonitorState` (Pydantic, протекает через граф) + `EventRecord` в SQLite-аудите (`sqlite3`/SQLModel).
 - **Eval:** core — unit для узлов + e2e на фейковом фиде + agent-eval. **RAGAS — опциональная bonus-фича за флагом**, не в ядре.
@@ -79,7 +79,7 @@ monitoring-agent/
   README.md                   # как запустить демо за 1 команду
 
   app/
-    config.py                 # pydantic-settings: токены, scope, MODE=mock|real, feed urls
+    config.py                 # pydantic-settings: токены, scope, ADAPTERS=mock|real, feed urls
     state.py                  # MonitorState (Pydantic), EventRecord, enums (Severity, Status)
 
     graph/
@@ -110,15 +110,15 @@ monitoring-agent/
       sources.py              # feedparser; FakeSource для детерминированного демо
 
     adapters/                 # pluggable: Protocol + mock (real — задел на будущее)
-      ticket.py               # TicketAdapter(Protocol); MockTicketAdapter → SQLite + DEMO-123
+      ticket.py               # TicketAdapter(Protocol); MockTicketAdapter → SQLite + DEMO-{seq:03d}
       notify.py               # NotifyAdapter(Protocol); MockNotifyAdapter → outbox/*.eml + log
-      factory.py              # выбор реализации по MODE (сейчас всегда mock; real — стаб)
+      factory.py              # выбор реализации по ADAPTERS (сейчас всегда mock; real — стаб)
 
     store/
       audit.py                # SQLite (sqlite3/SQLModel): EventRecord, idempotency-проверка, статусы
 
     api/
-      server.py               # FastAPI: POST /trigger (ручной прогон по entry), GET /health, /ready, /audit
+      server.py               # FastAPI: POST /trigger (ручной прогон по entry), GET /health, /audit
 
   data/
     knowledge/                # runbooks*.md, past_incidents*.md → KB
@@ -176,7 +176,7 @@ monitoring-agent/
 ## Деплой / запуск (демо)
 
 - `docker-compose up` поднимает: `embedding-service` (E5) + `monitoring-agent` (FastAPI + LangGraph + поллер в daemon-треде). Опц. `mailhog` для наглядного просмотра писем.
-- `MODE=demo` по умолчанию → mock-адаптеры: заявка в SQLite (`DEMO-123`), письмо в `outbox/*.eml` + лог. Полностью без внешних секретов/сервисов.
+- `ADAPTERS=mock` по умолчанию → mock-адаптеры: заявка в SQLite (`DEMO-001`), письмо в `outbox/*.eml` + лог. Полностью без внешних секретов/сервисов.
 - Источник: `SOURCE=fake` (по умолчанию, `fake_feed.json`) | `SOURCE=rss` + `FEED_URL=...` (bonus, живой RSS через `feedparser`).
 - Сидинг KB: `python -m app.rag.build_kb` из `data/knowledge/`.
 - Демо-прогон: `POST /trigger` с записью из `fake_feed.json` (детерминированно) ИЛИ включить живой фид.
@@ -201,7 +201,7 @@ monitoring-agent/
 ## Верификация
 
 1. **Unit:** `test_triage.py` (классификация на фикстурах: инцидент vs шум), `test_idempotency.py` (повторный прогон того же события не плодит заявку/письмо), `test_adapters.py` (mock-адаптеры пишут ожидаемые записи в SQLite/`outbox`).
-2. **E2E:** `test_graph_e2e.py` — прогон `fake_feed.json` через весь граф в `MODE=demo`, проверка: создан 1 EventRecord со статусом DONE, ticket_id присвоен, письмо отрендерено владельцу из `owners.yaml`.
+2. **E2E:** `test_graph_e2e.py` — прогон `fake_feed.json` через весь граф в `ADAPTERS=mock`, проверка: создан 1 EventRecord со статусом DONE, ticket_id присвоен, письмо отрендерено владельцу из `owners.yaml`.
 3. **Agent eval:** `evals/agent_eval.py` — precision триажа и доля верной маршрутизации владельцу на размеченном наборе записей.
 4. **RAG eval (BONUS, за флагом):** `evals/ragas_eval.py` на тест-сете по `data/knowledge/` — Faithfulness/AnswerRelevancy/ContextPrecision/Recall выше порога.
 5. **Ручная демонстрация:** `docker-compose up` → `POST /trigger` → смотрим лог графа поузлово + запись в `/audit` + письмо в `outbox/` (или Mailhog).

@@ -28,7 +28,7 @@
 
 > `docker-compose up` запускает агент; `POST /trigger` с записью из `fake_feed.json` за ≤ 30 секунд возвращает HTTP 200 и приводит к появлению:
 > - **1 `EventRecord`** в SQLite со статусом `DONE`;
-> - **1 ticket** `DEMO-XXX` в mock-Jira (SQLite-store);
+> - **1 ticket** `DEMO-001` в mock-Jira (SQLite-store; схема `DEMO-{seq:03d}`);
 > - **1 письмо** `.eml` в `outbox/` владельцу затронутой системы из `owners.yaml`.
 >
 > Повторный запрос с тем же `event_hash` **не плодит дубликатов** (идемпотентность подтверждена в e2e-тесте).
@@ -42,7 +42,7 @@
 3. **НЕ** делаем UI / админку / KB-builder web-интерфейс — только REST-эндпоинт `/trigger` + CLI seeding KB.
 4. **НЕ** делаем real-time updates / WebSocket / push — синхронный `POST /trigger` + polling daemon для фидов.
 5. **НЕ** делаем мультитенантность / RBAC / auth — один технический пользователь, никаких ролей.
-6. **НЕ** включаем `ragas` в основные dependencies — bonus-фича за флагом `[evals]` / опциональным `requirements-eval.txt`.
+6. **НЕ** включаем `ragas` в основные dependencies — bonus-фича за extra-флагом `[eval]` в `pyproject.toml` (`pip install -e ".[eval]"`).
 7. **НЕ** делаем мобильную версию / responsive UI — UI отсутствует как класс.
 8. **НЕ** работаем с реальными внутренними данными Сбера — только синтетика «Сбер-like» (платёжный шлюз, КИБ, СБОЛ, KYC).
 9. **НЕ** оптимизируем под бесконечное полирование — критерий «готово к показу» (см. Метрика успеха) останавливает работу.

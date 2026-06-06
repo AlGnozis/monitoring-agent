@@ -95,7 +95,7 @@ Done-criteria (исполняемые):
 7. Все Python-папки имеют пустой `__init__.py`.
 8. `outbox/` имеет `.gitkeep`, чтобы трекаться в git (содержимое игнорится через `.gitignore`).
 9. `.env.example` содержит плейсхолдеры всех переменных, которые понадобятся в итерации-1:
-   `GIGACHAT_AUTH_KEY`, `GIGACHAT_SCOPE`, `MODE` (demo по умолчанию), `SOURCE` (fake по умолчанию), `FEED_URL` (пусто для fake-режима), `POLL_INTERVAL_SEC` (300), `EMBEDDING_SERVICE_URL` (http://embedding-service:8000).
+   `GIGACHAT_AUTH_KEY`, `GIGACHAT_SCOPE`, `ADAPTERS` (mock по умолчанию), `SOURCE` (fake по умолчанию), `FEED_URL` (пусто для fake-режима), `POLL_INTERVAL_SEC` (300), `EMBEDDING_SERVICE_URL` (http://embedding-service:8000).
 10. `.env` НЕ попадает в git (уже в `.gitignore`).
 
 Что НЕ считается готовым:

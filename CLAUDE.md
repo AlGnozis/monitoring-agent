@@ -51,7 +51,7 @@ evals/        — agent_eval (core), ragas_eval (bonus за флагом)
 2. **Каждое переиспользование паттерна AI-Factory** — комментарий в коде: `# Adapted from ai-factory/<path>` + одна строка причины. Реестр — `docs/REUSED-FROM-AI-FACTORY.md`.
 3. **Тесты обязательны** для: триажа (фикстуры incident / шум / маркетинг), идемпотентности (повторный прогон не плодит дубликатов), e2e-сценария по `fake_feed.json`.
 4. **Публичные сигнатуры Protocol-адаптеров** (`TicketAdapter`, `NotifyAdapter`) не меняются без RFC в `docs/iteration-N.md`.
-5. **Mock через factory + Protocol**, никаких `if mode == "mock"` веток в бизнес-логике.
+5. **Mock через factory + Protocol**, никаких `if ADAPTERS == "mock"` веток в бизнес-логике.
 6. **PR / commit message — на русском.** Code, identifiers, docstrings — на английском.
 7. **README, документы — на русском** (по решению пользователя).
 
@@ -93,7 +93,7 @@ curl -X POST localhost:8000/trigger -d '{"entry_id": "demo-001"}'
 curl localhost:8000/audit | jq
 
 # Eval (bonus)
-pip install -r requirements-eval.txt
+pip install -e ".[eval]"
 python evals/ragas_eval.py
 ```
 
@@ -109,7 +109,7 @@ python evals/ragas_eval.py
 | `app/llm/schemas.py` | Pydantic-схемы structured-output (плоские, GigaChat-совместимые) |
 | `app/rag/retriever.py` | FAISS similarity_search + STRONG/WEAK режимы |
 | `app/store/audit.py` | SQLite audit, `is_processed(event_hash)`, идемпотентность |
-| `app/adapters/factory.py` | Выбор реализации по `MODE`; сейчас всегда mock |
+| `app/adapters/factory.py` | Выбор реализации по `ADAPTERS` (`mock`/`real`); сейчас всегда mock |
 | `data/owners.yaml` | `affected_system → {owner_name, owner_email, team}` |
 | `data/fake_feed.json` | Детерминированный синтетический фид «Сбер-like» |
 | `docs/product-vision.md` | Продуктовая постановка |
@@ -127,8 +127,8 @@ python evals/ragas_eval.py
 ## Anti-patterns проекта (горький опыт + предупреждения)
 
 - **НЕ ИМПОРТИРУЙ `ai-factory/core/__init__.py`** — тянет Kafka/Redis при импорте, ломает unit-тесты.
-- **НЕ ИСПОЛЬЗУЙ `if mode == "mock"`** в бизнес-логике — только factory + Protocol.
-- **НЕ ВКЛЮЧАЙ RAGAS в основные dependencies** — отдельный `requirements-eval.txt` за флагом.
+- **НЕ ИСПОЛЬЗУЙ `if ADAPTERS == "mock"`** в бизнес-логике — только factory + Protocol.
+- **НЕ ВКЛЮЧАЙ RAGAS в основные dependencies** — только в `[project.optional-dependencies].eval` (extra `[eval]`).
 - **НЕ МОКАЙ `gigachat_client` в e2e-тестах** — только в `tests/test_triage.py` с явной маркировкой `@pytest.mark.mock_llm`.
 - **НЕ ПИШИ `print`** — loguru или `log_info` обёртка.
 - **НЕ ПОВТОРЯЙ `recursion_limit=10`** в каждом вызове графа — задаётся один раз в `build.py`.

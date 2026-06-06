@@ -85,7 +85,7 @@ monitoring-agent/
 
 Проект разрабатывается с использованием **AI coding pipeline** (см. `CLAUDE.md` § Behavioral defaults, Karpathy 4 принципа). История коммитов — conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`).
 
-CI: GitHub Actions — `ruff check` + `pytest -q` на push в `main` (см. `.github/workflows/ci.yml`).
+CI: GitHub Actions — `ruff check` + `pytest -q` на push и PR в `main` (см. `.github/workflows/ci.yml`).
 
 ## License
 
