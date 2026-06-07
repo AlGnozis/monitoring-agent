@@ -14,3 +14,4 @@
 | `app/rag/embeddings.py` | `backend modules/knowledge_base/embeddings.py` | HTTP-клиент E5 (батчинг + префиксы `passage:`/`query:`, инвариант #9) | endpoint указывает на наш `embedding-service` |
 | `app/rag/vectorize.py` | `backend modules/knowledge_base/vectorization.py` | чанкинг `RecursiveCharacterTextSplitter` 512/overlap 50 + loader с encoding-fallback | урезано до `.md/.txt` (без PDF/DOCX — лишние тяжёлые зависимости не нужны) |
 | `app/rag/retriever.py` | `backend modules/knowledge_base/entrypoint.py` (`/search`) | `similarity_search` по локальному FAISS + `allow_dangerous_deserialization=True` (инвариант #7) | graceful degradation: нет индекса → пустой `RagContext` |
+| `app/ingest/rss_poller.py` | `backend modules/integrations/email_service_entrypoint.py` (`_polling_loop`) | daemon polling-loop: `threading.Event` + дедуп по id | не auto-start в iter-1 (§ Anti-scope); ядро `run_once` вынесено для тестируемости |

@@ -31,6 +31,7 @@ class Settings(BaseSettings):
 
     # --- Source / polling ---
     feed_url: str = ""  # required only when source == "rss"
+    fake_feed_path: Path = Path("data/fake_feed.json")  # used when source == "fake"
     poll_interval_sec: int = 300
 
     # --- Embeddings / RAG ---
