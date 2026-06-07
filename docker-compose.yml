@@ -1,0 +1,37 @@
+services:
+  embedding-service:
+    build: ./embedding-service
+    # exposed on the host for debugging; the agent reaches it via the compose network
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  agent:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      GIGACHAT_AUTH_KEY: ${GIGACHAT_AUTH_KEY:-}
+      GIGACHAT_SCOPE: ${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
+      EMBEDDING_SERVICE_URL: http://embedding-service:8000
+      ADAPTERS: mock
+      SOURCE: fake
+    depends_on:
+      embedding-service:
+        condition: service_healthy
+    volumes:
+      # surface results on the host and persist the FAISS index across runs
+      - ./outbox:/app/outbox
+      - ./data/kb:/app/data/kb
+
+  # --- bonus profile (iteration-2): local SMTP sink to view emails in a UI ---
+  # mailhog:
+  #   image: mailhog/mailhog
+  #   ports:
+  #     - "8025:8025"  # web UI
+  #     - "1025:1025"  # SMTP
