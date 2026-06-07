@@ -40,6 +40,8 @@ target-version = "py312"
 select = ["E", "F", "I", "UP", "B", "SIM"]
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends"]  # FastAPI's Depends() in arg defaults is idiomatic
 
 [tool.mypy]
 python_version = "3.12"
