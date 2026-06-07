@@ -1,0 +1,38 @@
+# Справочник владельцев систем: affected_system -> владелец.
+# Ключи — канонические latin-слаги сервисов (как в few-shot триажа).
+# `default` — fallback, если система не распознана (письмо всё равно уйдёт дежурному).
+
+payment-gateway:
+  owner_name: Анна Соколова
+  owner_email: a.sokolova@sber-demo.local
+  team: Платёжные сервисы
+
+core-banking:
+  owner_name: Дмитрий Кузнецов
+  owner_email: d.kuznetsov@sber-demo.local
+  team: АБС (ядро)
+
+kyc-service:
+  owner_name: Мария Орлова
+  owner_email: m.orlova@sber-demo.local
+  team: Комплаенс и KYC
+
+mobile-bank:
+  owner_name: Игорь Лебедев
+  owner_email: i.lebedev@sber-demo.local
+  team: Мобильный банк
+
+card-processing:
+  owner_name: Ольга Новикова
+  owner_email: o.novikova@sber-demo.local
+  team: Карточный процессинг
+
+fraud-detection:
+  owner_name: Сергей Морозов
+  owner_email: s.morozov@sber-demo.local
+  team: Антифрод
+
+default:
+  owner_name: Дежурный инженер
+  owner_email: duty@sber-demo.local
+  team: Дежурная смена
