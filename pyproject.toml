@@ -51,3 +51,4 @@ files = ["app"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q --strict-markers"
+markers = ["mock_llm: test substitutes LLM behaviour via injected fake deps"]
