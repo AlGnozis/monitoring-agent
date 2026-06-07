@@ -37,8 +37,10 @@ class Settings(BaseSettings):
     embedding_service_url: str = "http://embedding-service:8000"
     kb_path: Path = Path("data/kb")  # FAISS index dir (gitignored, built by app.rag.build_kb)
 
-    # --- Persistence (SQLite, gitignored) ---
+    # --- Persistence (SQLite / files, gitignored) ---
     audit_db_path: Path = Path("audit.db")  # EventRecord audit store
+    tickets_db_path: Path = Path("tickets.db")  # MockTicketAdapter store
+    outbox_path: Path = Path("outbox")  # MockNotifyAdapter renders .eml here
 
     @property
     def embedding_endpoint(self) -> str:
