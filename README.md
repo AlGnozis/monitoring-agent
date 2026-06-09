@@ -11,7 +11,7 @@ AI-агент мониторинга IT-инцидентов. Читает RSS-�
 
 Тестовое задание на позицию **Python-разработчик (AI-агент)** в Сбере.
 
-> 🎥 **Demo (90 сек):** _ссылка добавится после записи_ — `docker-compose up` → `build_kb` → `POST /trigger` → `outbox/demo-001.eml` + `audit.db`.
+> 🎥 **Demo (90 сек):** _ссылка добавится после записи_ — `docker compose up` → `build_kb` → `POST /trigger` → `outbox/demo-001.eml` + `audit.db`.
 
 ---
 
@@ -52,10 +52,10 @@ cp .env.example .env
 # отредактировать .env: GIGACHAT_AUTH_KEY=..., GIGACHAT_SCOPE=GIGACHAT_API_PERS
 
 # 3. Поднять (agent + embedding-service)
-docker-compose up -d
+docker compose up -d
 
 # 4. Собрать базу знаний (runbooks + past_incidents → FAISS index)
-docker-compose exec agent python -m app.rag.build_kb
+docker compose exec agent python -m app.rag.build_kb
 # ожидаем: data/kb/index.faiss создан, N документов проиндексировано
 
 # 5. Прогнать e2e (детерминированный fake-feed)
@@ -101,7 +101,7 @@ mypy app/
 | **Прочее** | 5 | `test_data.py`, `test_logger.py` |
 | **ИТОГО** | **62** | mypy strict, ruff clean, CI green |
 
-**LLM-уровень в тестах** — `@pytest.mark.mock_llm`: реальный GigaChat не вызывается (нет секретов в CI). E2E против реального GigaChat — на стороне ревьюера: `docker-compose up` + `.env` с креденшалами.
+**LLM-уровень в тестах** — `@pytest.mark.mock_llm`: реальный GigaChat не вызывается (нет секретов в CI). E2E против реального GigaChat — на стороне ревьюера: `docker compose up` + `.env` с креденшалами.
 
 ---
 

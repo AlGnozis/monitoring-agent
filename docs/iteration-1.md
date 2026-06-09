@@ -4,13 +4,13 @@
 
 ## Цель итерации
 
-Реализовать **полный e2e-сценарий** монитор-агента от ingest до письма в `outbox/`, чтобы `docker-compose up` + один `POST /trigger` приводил к зелёному прогону за ≤ 30 секунд **с идемпотентной обработкой повторов**. После этой итерации проект готов к публикации на GitHub и demo-видео.
+Реализовать **полный e2e-сценарий** монитор-агента от ingest до письма в `outbox/`, чтобы `docker compose up` + один `POST /trigger` приводил к зелёному прогону за ≤ 30 секунд **с идемпотентной обработкой повторов**. После этой итерации проект готов к публикации на GitHub и demo-видео.
 
 ## Метрика успеха
 
 > **Единственный observable factum «итерация-1 готова»:**
 >
-> На чистой машине после `docker-compose up`:
+> На чистой машине после `docker compose up`:
 > ```bash
 > curl -X POST localhost:8000/trigger -d '{"entry_id": "demo-001"}'
 > # Ожидаем: HTTP 200, {"status": "DONE", "ticket_id": "DEMO-001", "event_hash": "..."}
@@ -88,7 +88,7 @@
 Подробно — `docs/ARCHITECTURE.md`. Здесь — пятистрочная сводка:
 
 - **Граф**: `ingest → triage → enrich_rag → resolve_owner → plan_action → act_ticket → act_notify → persist_audit`.
-- **Внешний сервис**: `embedding-service` (E5) поднимается рядом в `docker-compose`.
+- **Внешний сервис**: `embedding-service` (E5) поднимается рядом в `docker-compose.yml`.
 - **Идемпотентность**: проверка `event_hash` в `audit.db` перед `act_ticket` и `act_notify`.
 - **Mock через `Protocol`**: реальная Jira/SMTP — не реализуется, но интерфейс готов.
 - **Структуры данных**: `MonitorState` (Pydantic) протекает через граф; `EventRecord` фиксируется в SQLite в конце.
@@ -122,7 +122,7 @@
 
 1. **Контейнеры поднимаются:**
    ```bash
-   docker-compose up -d && sleep 10 && docker-compose ps
+   docker compose up -d && sleep 10 && docker compose ps
    # ожидаем: agent + embedding-service оба "Up"
    ```
 2. **Healthcheck зелёный:**
@@ -131,7 +131,7 @@
    ```
 3. **KB собирается:**
    ```bash
-   docker-compose exec agent python -m app.rag.build_kb
+   docker compose exec agent python -m app.rag.build_kb
    # ожидаем: создан data/kb/index.faiss + nonzero N документов в логе
    ```
 4. **`POST /trigger` зелёный e2e:**
@@ -167,7 +167,7 @@
 
 - [ ] **Размер KB:** 4–6 markdown — достаточно? Если ревьюер захочет «понажимать» — может оказаться мало. Решим перед demo-видео.
 - [ ] **Mailhog в demo:** включать в `docker-compose.yml` по умолчанию или оставить закомментированным как «bonus профиль»? Влияет на сложность запуска на чистой машине.
-- [ ] **Поллер в MVP:** запускать в daemon-треде сразу или только активировать через переменную окружения? (Безопаснее: только через env, чтобы `docker-compose up` не «жил» в фоне фейковыми тиками.)
+- [ ] **Поллер в MVP:** запускать в daemon-треде сразу или только активировать через переменную окружения? (Безопаснее: только через env, чтобы `docker compose up` не «жил» в фоне фейковыми тиками.)
 - [ ] **CI на push vs на PR:** `ci.yml` сейчас триггерится на `push` **и** `pull_request` в `main` (удобно и для одиночной разработки, и для PR). Менять при необходимости.
 - [ ] **README структура:** «быстрый старт» в начале (1 команда) или развёрнутый «как это работает» сразу? Решим, когда увидим работающий MVP.
 

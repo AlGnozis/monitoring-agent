@@ -146,7 +146,7 @@ monitoring-agent/
 | `rag/embeddings.py` | `backend/ai_factory/modules/knowledge_base/embeddings.py` | `E5RemoteEmbeddings` (copy as-is, сменить endpoint) |
 | `rag/vectorize.py` | `backend/.../knowledge_base/vectorization.py` | loader (PDF/DOCX/TXT, encoding-fallback), `RecursiveCharacterTextSplitter(512, overlap=50)`, префикс `passage:`, `FAISS.from_documents` |
 | `rag/retriever.py` | `ai-factory/core/routes/knowledge_base/entrypoint.py` `/search/` | `similarity_search_with_score(k, threshold)`, режимы NECC/STRONG/WEAK, `form_prompt_for_mode` |
-| embedding-service | `add_soft/embedding-service-develop/main.py` | standalone E5 (`intfloat/e5-small-v2`), `POST /embedding`, в docker-compose |
+| embedding-service | `add_soft/embedding-service-develop/main.py` | standalone E5 (`intfloat/e5-small-v2`), `POST /embedding`, отдельный сервис в `docker-compose.yml` |
 | `ingest/rss_poller.py` | `backend/.../integrations/email_service_entrypoint.py` `_polling_loop()` | daemon-тред, `threading.Event`, `POLL_INTERVAL`, дедуп по id, graceful `/close/` |
 | `adapters/ticket.py` | `backend/.../integrations/jira_mcp_server.py` | контракт `create_issue`/`search_issues` как форма `Protocol` (mock-реализация в демо) |
 | `adapters/notify.py` | `email_service_entrypoint.py` (SMTP-часть) | формат письма владельцу (mock рендерит в `.eml`) |
@@ -175,7 +175,7 @@ monitoring-agent/
 
 ## Деплой / запуск (демо)
 
-- `docker-compose up` поднимает: `embedding-service` (E5) + `monitoring-agent` (FastAPI + LangGraph + поллер в daemon-треде). Опц. `mailhog` для наглядного просмотра писем.
+- `docker compose up` поднимает: `embedding-service` (E5) + `monitoring-agent` (FastAPI + LangGraph + поллер в daemon-треде). Опц. `mailhog` для наглядного просмотра писем.
 - `ADAPTERS=mock` по умолчанию → mock-адаптеры: заявка в SQLite (`DEMO-001`), письмо в `outbox/*.eml` + лог. Полностью без внешних секретов/сервисов.
 - Источник: `SOURCE=fake` (по умолчанию, `fake_feed.json`) | `SOURCE=rss` + `FEED_URL=...` (bonus, живой RSS через `feedparser`).
 - Сидинг KB: `python -m app.rag.build_kb` из `data/knowledge/`.
@@ -204,4 +204,4 @@ monitoring-agent/
 2. **E2E:** `test_graph_e2e.py` — прогон `fake_feed.json` через весь граф в `ADAPTERS=mock`, проверка: создан 1 EventRecord со статусом DONE, ticket_id присвоен, письмо отрендерено владельцу из `owners.yaml`.
 3. **Agent eval:** `evals/agent_eval.py` — precision триажа и доля верной маршрутизации владельцу на размеченном наборе записей.
 4. **RAG eval (BONUS, за флагом):** `evals/ragas_eval.py` на тест-сете по `data/knowledge/` — Faithfulness/AnswerRelevancy/ContextPrecision/Recall выше порога.
-5. **Ручная демонстрация:** `docker-compose up` → `POST /trigger` → смотрим лог графа поузлово + запись в `/audit` + письмо в `outbox/` (или Mailhog).
+5. **Ручная демонстрация:** `docker compose up` → `POST /trigger` → смотрим лог графа поузлово + запись в `/audit` + письмо в `outbox/` (или Mailhog).

@@ -73,7 +73,7 @@ L1 (этот промпт)       — конкретная задача с XML-к
 
 ### Метрика успеха iteration-1 (из vision)
 
-> `docker-compose up` → `POST /trigger` → DONE + ticket + `.eml` за ≤ 30 сек, идемпотентно при повторе.
+> `docker compose up` → `POST /trigger` → DONE + ticket + `.eml` за ≤ 30 сек, идемпотентно при повторе.
 
 **Статус:** ✅ доказано тестами (`tests/test_graph.py::test_happy_path_incident` + `test_idempotent_repeat_does_not_duplicate`). E2E через реальный GigaChat — на стороне пользователя (нужны секреты в `.env`).
 
