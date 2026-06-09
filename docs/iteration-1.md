@@ -25,23 +25,46 @@
 
 ## Scope (что входит в итерацию)
 
-| Модуль | Что реализуется |
-|---|---|
-| `app/config.py` | pydantic-settings: токены GigaChat, scope, ADAPTERS, SOURCE, FEED_URL |
-| `app/state.py` | `MonitorState`, `EventRecord`, enums `Severity`, `Status` |
-| `app/llm/` | `gigachat_client.py` (тонкая фабрика, встроенный refresh), `prompts.py` (TRIAGE + PLAN), `schemas.py` (плоские структуры) |
-| `app/rag/` | `embeddings.py`, `vectorize.py`, `retriever.py`, `build_kb.py` (CLI) |
-| `app/ingest/` | `sources.py` (`FakeSource`), `rss_poller.py` (daemon) |
-| `app/adapters/` | `Protocol` + `MockTicketAdapter` + `MockNotifyAdapter` + `factory.py` |
-| `app/store/audit.py` | SQLite-аудит + идемпотентность по `event_hash` |
-| `app/graph/` | 8 узлов LangGraph + `build.py` с `recursion_limit=10` |
-| `app/api/server.py` | FastAPI: `POST /trigger`, `GET /health`, `GET /audit` |
-| `data/owners.yaml` | 5–7 систем «Сбер-like» с владельцами |
-| `data/fake_feed.json` | 6–10 записей: 3 явных инцидента + 2 шума + 1 маркетинг (фикстуры для unit) |
-| `data/knowledge/` | 4–6 markdown (runbooks + past_incidents) для KB |
-| `docker-compose.yml` | `agent` + `embedding-service` (+ опц. `mailhog`) |
-| **Инфраструктура GitHub** | `LICENSE` (MIT), `.gitignore`, `README.md` (RU), `.github/workflows/ci.yml` (ruff + pytest) |
-| **Тесты** | `test_triage.py`, `test_idempotency.py`, `test_adapters.py`, `test_graph_e2e.py` |
+> **Status:** ✅ **iteration-1 complete** — все 13 задач выполнены, CI green, 62 теста зелёных. Сводка коммитов — в § Done ниже.
+
+| Модуль | Что реализовано | Status |
+|---|---|---|
+| `app/config.py` | pydantic-settings: GigaChat creds, scope, ADAPTERS, SOURCE, KB_PATH, embedding URL | ✅ |
+| `app/state.py` | `MonitorState`, `EventRecord`, enums `Severity` (5), `Status`, `compute_event_hash` | ✅ |
+| `app/llm/` | `gigachat_client.py` (тонкая фабрика, встроенный refresh), `prompts.py`, `schemas.py` (re-export + parse_model fallback) | ✅ |
+| `app/rag/` | `embeddings.py` (E5 + `passage:/query:`), `vectorize.py` (chunk 512/50), `retriever.py`, `build_kb.py` (CLI) | ✅ |
+| `app/ingest/` | `sources.py` (`FakeSource` + `RssSource`), `rss_poller.py` (daemon-ready, не auto-start) | ✅ |
+| `app/adapters/` | `TicketAdapter`/`NotifyAdapter` (Protocol), `MockTicketAdapter` + `MockNotifyAdapter`, `factory.py` | ✅ |
+| `app/store/audit.py` | SQLite-аудит + `is_processed(event_hash)` + `save/get/list_records` | ✅ |
+| `app/graph/` | 8 узлов + `build.py` (`recursion_limit=10`, conditional edges) + `deps.py` (DI) + `wiring.py` | ✅ |
+| `app/api/server.py` | FastAPI: `POST /trigger`, `GET /health`, `GET /audit`, `GET /audit/{event_hash}` + единый JSON-формат ошибок | ✅ |
+| `app/logger.py` | loguru-обёртка `log_info/warn/error(msg, component, action, ctx)` + escape `{{}}` | ✅ |
+| `data/owners.yaml` | 5 систем «Сбер-like» с владельцами | ✅ |
+| `data/fake_feed.json` | детерминированный фид (3 инцидента + шум + маркетинг) | ✅ |
+| `data/knowledge/` | 5 markdown (4 runbooks + 1 past_incident) для KB | ✅ |
+| `docker-compose.yml` + `Dockerfile` + `embedding-service/` | `agent` + `embedding-service` (FastAPI на E5), healthcheck, volumes | ✅ |
+| **Инфраструктура GitHub** | `LICENSE` (MIT), `.gitignore`, `README.md` (RU + бейджи), `.github/workflows/ci.yml` (ruff + format + mypy + pytest) | ✅ |
+| **Тесты** | 62 теста в 16 файлах: контракты (18), хранилища/адаптеры (11), LLM/RAG (14), ingest (4), граф (4), API (6), прочее (5) | ✅ |
+
+## Done — сводка ключевых коммитов
+
+| Task | Commit | Описание |
+|---|---|---|
+| 1 | `2f5d4d9` | `chore: project skeleton (pyproject, package structure, .env.example)` |
+| 2 | `418d3a4` | `feat(state): MonitorState + EventRecord + enums` |
+| 3 | `5cf7b1f` | `feat(config): pydantic-settings` |
+| 4 | `89be97f` | `feat(llm): фабрика GigaChat (refresh на стороне библиотеки)` |
+| 5 | `f18bee8` | `feat(llm): structured output schemas + prompts` |
+| 6 | `57ce537` | `feat(rag): E5 embeddings + vectorize + retriever + build_kb` |
+| 7 | `8953f75` | `feat(store): SQLite audit + идемпотентность по event_hash` |
+| 8 | `5352904` | `feat(adapters): Protocol + mock ticket/notify + factory` |
+| 9 | `ed1302e` | `feat(ingest): FakeSource + RSS-адаптер + feed poller` |
+| 10 | `078f936` | `feat(graph): LangGraph 8 узлов + сборка + идемпотентность` |
+| 11 | `2f171eb` | `feat(api): FastAPI /trigger /health /audit` |
+| 12 | `1ec4684` | `feat(data): owners.yaml + fake_feed.json + база знаний` |
+| 13 | `ceba3cf` | `feat(docker): compose + Dockerfile агента + embedding-service` |
+
+Плюс docs-sweep `034cfee` (token-cache + cleanup, см. retrospective). Всего по iteration-1 — 14 feat/chore commits + 4 docs/fix. История линейная, conventional.
 
 ## Anti-scope (что НЕ входит — отложено или никогда)
 
