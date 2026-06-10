@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from app.graph.owners import make_owner_resolver
+from app.graph.owners import known_systems, make_owner_resolver
 
 _YAML = """
 payment-gateway:
@@ -42,3 +42,13 @@ def test_no_default_uses_builtin_fallback(tmp_path: Path) -> None:
     resolve = make_owner_resolver(path)
     owner = resolve("nope")
     assert owner.owner_email == "unassigned@monitoring.local"
+
+
+def test_normalised_match_tolerates_case_and_spacing(tmp_path: Path) -> None:
+    resolve = make_owner_resolver(_owners_file(tmp_path))
+    owner = resolve("Payment Gateway")  # case + space variant of the slug
+    assert owner.owner_email == "ivan@bank.local"
+
+
+def test_known_systems_excludes_default(tmp_path: Path) -> None:
+    assert known_systems(_owners_file(tmp_path)) == ["payment-gateway"]

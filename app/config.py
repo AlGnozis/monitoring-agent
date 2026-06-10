@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     # --- GigaChat (passed as credentials+scope; the library refreshes the token, invariant #10) ---
     gigachat_auth_key: str = ""
     gigachat_scope: str = "GIGACHAT_API_PERS"
+    gigachat_model: str = "GigaChat-Max"  # "GigaChat-Pro" | "GigaChat-Max" (по умолчанию — стабильнее всего)
 
     # --- Selectors ---
     adapters: Literal["mock", "real"] = "mock"  # ticket/notify implementation (invariant #4)
