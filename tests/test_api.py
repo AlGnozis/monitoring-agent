@@ -18,16 +18,16 @@ pytestmark = pytest.mark.mock_llm
 
 
 def _fake_deps(tmp_path: Path) -> GraphDeps:
-    def triage(entry: FeedEntry) -> TriageOutput:
-        return TriageOutput(
-            is_incident=True, severity=Severity.HIGH, topic="платежи", affected_system="payment-gateway"
-        )
+    def triage(entry: FeedEntry) -> tuple[TriageOutput, int]:
+        out = TriageOutput(is_incident=True, severity=Severity.HIGH, topic="платежи", affected_system="payment-gateway")
+        return out, 11
 
     def resolve(system: str) -> OwnerInfo:
         return OwnerInfo(affected_system=system, owner_name="Иван", owner_email="ivan@bank.local", team="payments")
 
-    def plan(entry: FeedEntry, ctx: RagContext) -> PlanOutput:
-        return PlanOutput(summary="рост 5xx", recommendations=["рестарт"], escalate_to="payments")
+    def plan(entry: FeedEntry, ctx: RagContext) -> tuple[PlanOutput, int]:
+        out = PlanOutput(summary="рост 5xx", recommendations=["рестарт"], escalate_to="payments")
+        return out, 7
 
     return GraphDeps(
         triage=triage,

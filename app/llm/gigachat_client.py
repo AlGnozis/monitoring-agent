@@ -44,7 +44,7 @@ def build_gigachat(
         "temperature": temperature,
         "top_p": top_p,
         "verify_ssl_certs": False,
-        "timeout": 60,
+        "timeout": settings.gigachat_timeout,
     }
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens

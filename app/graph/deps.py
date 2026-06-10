@@ -15,10 +15,10 @@ from app.store.audit import AuditStore
 
 @dataclass
 class GraphDeps:
-    triage: Callable[[FeedEntry], TriageOutput]
+    triage: Callable[[FeedEntry], tuple[TriageOutput, int]]
     retrieve: Callable[[str], RagContext]
     resolve_owner: Callable[[str], OwnerInfo]
-    plan: Callable[[FeedEntry, RagContext], PlanOutput]
+    plan: Callable[[FeedEntry, RagContext], tuple[PlanOutput, int]]
     ticket: TicketAdapter
     notify: NotifyAdapter
     audit: AuditStore

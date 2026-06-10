@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     gigachat_auth_key: str = ""
     gigachat_scope: str = "GIGACHAT_API_PERS"
     gigachat_model: str = "GigaChat-Max"  # "GigaChat-Pro" | "GigaChat-Max" (по умолчанию — стабильнее всего)
+    gigachat_timeout: int = 120  # сек; Max медленнее, холодный запрос может не уложиться в 60
 
     # --- Selectors ---
     adapters: Literal["mock", "real"] = "mock"  # ticket/notify implementation (invariant #4)

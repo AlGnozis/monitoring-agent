@@ -28,13 +28,14 @@ pytestmark = pytest.mark.mock_llm
 
 
 def _deps(tmp_path: Path, *, is_incident: bool = True, context_empty: bool = False) -> GraphDeps:
-    def fake_triage(entry: FeedEntry) -> TriageOutput:
-        return TriageOutput(
+    def fake_triage(entry: FeedEntry) -> tuple[TriageOutput, int]:
+        triage = TriageOutput(
             is_incident=is_incident,
             severity=Severity.HIGH if is_incident else Severity.INFO,
             topic="платежи",
             affected_system="payment-gateway",
         )
+        return triage, 11
 
     def fake_retrieve(query: str) -> RagContext:
         if context_empty:
@@ -44,8 +45,9 @@ def _deps(tmp_path: Path, *, is_incident: bool = True, context_empty: bool = Fal
     def fake_resolve(system: str) -> OwnerInfo:
         return OwnerInfo(affected_system=system, owner_name="Иван", owner_email="ivan@bank.local", team="payments")
 
-    def fake_plan(entry: FeedEntry, ctx: RagContext) -> PlanOutput:
-        return PlanOutput(summary="рост 5xx", recommendations=["рестарт", "проверить БД"], escalate_to="payments")
+    def fake_plan(entry: FeedEntry, ctx: RagContext) -> tuple[PlanOutput, int]:
+        plan = PlanOutput(summary="рост 5xx", recommendations=["рестарт", "проверить БД"], escalate_to="payments")
+        return plan, 7
 
     return GraphDeps(
         triage=fake_triage,
@@ -70,9 +72,11 @@ def test_happy_path_incident(tmp_path: Path) -> None:
     assert result.ticket_id == "DEMO-001"
     assert result.notified is True
     assert (tmp_path / "outbox" / "demo-001.eml").exists()
+    assert result.tokens == 18  # 11 (triage) + 7 (plan)
 
     records = deps.audit.list_records()
     assert len(records) == 1 and records[0].status is Status.DONE
+    assert records[0].tokens_total == 18
 
 
 def test_drop_path_non_incident(tmp_path: Path) -> None:
@@ -82,6 +86,7 @@ def test_drop_path_non_incident(tmp_path: Path) -> None:
     assert result.status is Status.DROPPED
     assert result.ticket_id is None
     assert result.notified is False
+    assert result.tokens == 11  # only triage ran; plan node skipped on the drop path
     assert not (tmp_path / "outbox").exists() or not list((tmp_path / "outbox").glob("*.eml"))
 
     records = deps.audit.list_records()

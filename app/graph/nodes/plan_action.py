@@ -8,4 +8,5 @@ from app.state import MonitorState, RagContext
 
 def plan_action_node(state: MonitorState, deps: GraphDeps) -> dict[str, Any]:
     context = state.rag_context or RagContext(chunks=[], context_empty=True)
-    return {"action_plan": deps.plan(state.raw_entry, context)}
+    plan, tokens = deps.plan(state.raw_entry, context)
+    return {"action_plan": plan, "tokens": state.tokens + tokens}
