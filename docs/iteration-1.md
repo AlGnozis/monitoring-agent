@@ -141,13 +141,13 @@
    ```
 5. **Артефакты на диске:**
    ```bash
-   ls outbox/demo-001.eml && sqlite3 audit.db "select status,ticket_id from records;"
+   ls outbox/demo-001.eml && curl -s localhost:8000/audit | jq '.records[0] | {status, ticket_id}'
    # ожидаем: файл существует, в audit ровно 1 строка DONE
    ```
 6. **Идемпотентность:**
    ```bash
    curl -X POST localhost:8000/trigger -d '{"entry_id":"demo-001"}'  # повторно
-   sqlite3 tickets.db "select count(*) from tickets;"  # ожидаем: 1, не 2
+   docker compose exec agent python -c "import sqlite3; print(sqlite3.connect('tickets.db').execute('select count(*) from tickets').fetchone()[0])"  # ожидаем: 1, не 2
    ls outbox/ | wc -l  # ожидаем: 1
    ```
 7. **Юнит-тесты:**

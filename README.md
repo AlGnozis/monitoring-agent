@@ -63,15 +63,15 @@ curl -X POST localhost:8000/trigger \
   -H "Content-Type: application/json" \
   -d '{"entry_id": "demo-001"}'
 
-# 6. Проверить артефакты
-sqlite3 audit.db "select event_hash, status, ticket_id from records;"
-ls outbox/         # demo-001.eml
-curl localhost:8000/audit | jq
+# 6. Проверить артефакты (audit.db/tickets.db — ВНУТРИ контейнера, не в volume; смотрим через API/exec)
+ls outbox/                                    # demo-001.eml на хосте (volume смонтирован)
+curl -s localhost:8000/audit | jq             # аудит: status, ticket_id, owner_email, tokens_total
+docker compose exec agent python -c "import sqlite3; print(sqlite3.connect('tickets.db').execute('select ticket_id,severity from tickets').fetchall())"
 
 # 7. Идемпотентность — повтор не плодит дублей
 curl -X POST localhost:8000/trigger -d '{"entry_id": "demo-001"}'
 ls outbox/ | wc -l                                    # = 1
-sqlite3 tickets.db "select count(*) from tickets;"    # = 1
+docker compose exec agent python -c "import sqlite3; print(sqlite3.connect('tickets.db').execute('select count(*) from tickets').fetchone()[0])"   # = 1
 ```
 
 **Ожидаемый результат шага 5:** `{"status": "DONE", "event_hash": "<hash>", "ticket_id": "DEMO-001"}` за ≤ 30 секунд. Письмо в `outbox/demo-001.eml`, заявка в `tickets.db`, аудит-строка в `audit.db`.

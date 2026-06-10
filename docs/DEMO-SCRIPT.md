@@ -72,8 +72,8 @@ curl -s -X POST localhost:8000/trigger \
 # Артефакты
 ls outbox/
 cat outbox/demo-001.eml | head -25
-sqlite3 audit.db "select event_hash, status, ticket_id from records;"
-sqlite3 tickets.db "select ticket_id, severity, summary from tickets;"
+curl -s localhost:8000/audit | jq
+docker compose exec agent python -c "import sqlite3; print(sqlite3.connect('tickets.db').execute('select ticket_id,severity,summary from tickets').fetchall())"
 ```
 
 **За кадром:**
@@ -93,7 +93,7 @@ curl -s -X POST localhost:8000/trigger \
 
 # Артефактов не прибавилось
 ls outbox/ | wc -l
-sqlite3 tickets.db "select count(*) from tickets;"
+docker compose exec agent python -c "import sqlite3; print(sqlite3.connect('tickets.db').execute('select count(*) from tickets').fetchone()[0])"
 ```
 
 **За кадром:**
@@ -117,14 +117,14 @@ curl -s -X POST localhost:8000/trigger -H "Content-Type: application/json" \
   -d '{"entry_id": "demo-001"}' | jq
 ls outbox/
 cat outbox/demo-001.eml | head -25
-sqlite3 audit.db "select event_hash, status, ticket_id from records;"
-sqlite3 tickets.db "select ticket_id, severity, summary from tickets;"
+curl -s localhost:8000/audit | jq
+docker compose exec agent python -c "import sqlite3; print(sqlite3.connect('tickets.db').execute('select ticket_id,severity,summary from tickets').fetchall())"
 
 # идемпотентность
 curl -s -X POST localhost:8000/trigger -H "Content-Type: application/json" \
   -d '{"entry_id": "demo-001"}' | jq
 ls outbox/ | wc -l
-sqlite3 tickets.db "select count(*) from tickets;"
+docker compose exec agent python -c "import sqlite3; print(sqlite3.connect('tickets.db').execute('select count(*) from tickets').fetchone()[0])"
 ```
 
 ---
